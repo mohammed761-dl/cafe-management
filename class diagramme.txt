@@ -1,0 +1,245 @@
+           +----------------+
+           |   <<abstract>> |
+           |     Coffee     |
+           +----------------+
+           | - name: string |
+           +----------------+
+           | + cost(): num  |
+           +----------------+
+                  ▲
+   ┌──────────────┼──────────────┐
+   │              │              │
++---------+   +---------+   +-------------+
+| Espresso|   |  Latte  |   | Cappuccino  |
++---------+   +---------+   +-------------+
+| +cost() |   | +cost() |   | +cost()     |
++---------+   +---------+   +-------------+
+
+                  ▲
+                  │
+      +------------------------+
+      |   CoffeeDecorator      |
+      +------------------------+
+      | - coffee: Coffee       |
+      +------------------------+
+      | + cost(): number       |
+      +------------------------+
+                  ▲
+   ┌──────────────┼──────────────┐
+   │              │              │
++----------+  +----------+  +--------------------+
+|   Milk   |  |  Sugar   |  |  WhippedCream      |
++----------+  +----------+  +--------------------+
+| +cost()  |  | +cost()  |  | +cost()            |
++----------+  +----------+  +--------------------+
+
++--------------------------+
+|        Order             |
++--------------------------+
+| - id: string             |
+| - coffee: Coffee         |
+| - timestamp: Date        |
++--------------------------+
+
++--------------------------+
+|        Manager           |
++--------------------------+
+| - id: string             |
+| - name: string           |
++--------------------------+
+
++------------------------------+
+|     InventoryManager         |
+|      <<Singleton>>           |
++------------------------------+
+| - ingredients: Map<string, number> |
++------------------------------+
+| + addIngredient(...)         |
+| + useIngredient(...)         |
+| + getInstance(): InventoryManager |
++------------------------------+
+
+        +----------- DAO Interfaces -----------+
+        | (all follow similar method patterns) |
+        +--------------------------------------+
+        | - save(entity): Promise<void>        |
+        | - getById(id): Promise<Entity|null>  |
+        | - getAll(): Promise<Entity[]>        |
+        +--------------------------------------+
+
+Let's break down the Class Diagram step by step to understand the relationships, design patterns, and functionality for each component in the Café Management System. This will help you understand how everything ties together and guide you in your implementation.
+
+📝 Class Diagram Overview
+1. Abstract Coffee Class and Concrete Types
+Coffee (abstract class)
+Attributes:
+
+name: string: The name of the coffee (e.g., Espresso, Latte).
+
+Methods:
+
+cost(): number: Abstract method to calculate the cost of the coffee. Each type of coffee will have its own cost logic.
+
+Espresso, Latte, Cappuccino (concrete classes)
+These classes extend the Coffee class and implement the cost() method based on the type of coffee. For example:
+
+Espresso: Cost is 2.0
+
+Latte: Cost is 3.5
+
+Cappuccino: Cost is 4.0
+
+This abstract class and concrete subclasses structure allows for flexibility in adding new coffee types without modifying the existing code. Just extend the Coffee class and define the specific cost logic.
+
+2. Coffee Customization (Decorator Pattern)
+CoffeeDecorator (abstract class)
+Attributes:
+
+coffee: Coffee: A reference to the coffee object. This is the component being decorated.
+
+Methods:
+
+cost(): number: A method that calculates the cost of the decorated coffee.
+
+Concrete Decorators:
+MilkDecorator, SugarDecorator, WhippedCreamDecorator
+
+These classes extend CoffeeDecorator and add extra functionality (like adding the cost of milk, sugar, or whipped cream) to the original coffee's cost.
+
+By using the Decorator Pattern, we can dynamically add new features (customizations) to the coffee without changing its core logic. This also keeps the code clean and follows the Open/Closed principle (open for extension, closed for modification).
+
+3. Order and Manager Classes
+Order Class
+Attributes:
+
+id: string: A unique identifier for the order.
+
+coffee: Coffee: The coffee object that was ordered.
+
+timestamp: Date: The timestamp when the order was placed.
+
+Methods:
+
+You can add methods for calculating the total cost or formatting the order information if needed.
+
+The Order class is a simple data object that associates a unique ID with the coffee that was ordered and when it was placed. It's used to keep track of customer orders.
+
+Manager Class
+Attributes:
+
+id: string: The manager's unique ID.
+
+name: string: The manager's name.
+
+This class represents the manager responsible for overseeing the café's operations. The Manager class is relatively simple but could be extended later for more functionality (e.g., managing orders, adding/removing items from inventory).
+
+4. Inventory Manager (Singleton Pattern)
+InventoryManager (Singleton class)
+Attributes:
+
+ingredients: Map<string, number>: A map of ingredient names (e.g., "milk", "sugar") and their available quantities.
+
+Methods:
+
+addIngredient(name: string, qty: number): Adds the specified quantity of an ingredient to the inventory.
+
+useIngredient(name: string, qty: number): boolean: Decreases the specified quantity of an ingredient. Returns false if there isn’t enough stock.
+
+getInstance(): InventoryManager: A static method that ensures there is only one instance of InventoryManager (Singleton pattern).
+
+The Singleton Pattern ensures that there is only one instance of InventoryManager throughout the entire application. This prevents issues where multiple instances could cause conflicting changes to the inventory. This class will be responsible for managing the available ingredients (e.g., coffee beans, milk, sugar).
+
+5. DAO Interfaces
+These interfaces represent the Data Access Object (DAO) pattern, which is used to abstract and encapsulate all the data access logic.
+
+CoffeeDAO Interface
+Methods:
+
+save(coffee: Coffee): Promise<void>: Save a coffee object to the database.
+
+getById(id: string): Promise<Coffee | null>: Retrieve a coffee by its ID.
+
+getAll(): Promise<Coffee[]>: Retrieve all coffee objects.
+
+OrderDAO Interface
+Methods:
+
+save(order: Order): Promise<void>: Save an order.
+
+getById(id: string): Promise<Order | null>: Retrieve an order by ID.
+
+getAll(): Promise<Order[]>: Retrieve all orders.
+
+ManagerDAO Interface
+Methods:
+
+save(manager: Manager): Promise<void>: Save a manager.
+
+getById(id: string): Promise<Manager | null>: Retrieve a manager by ID.
+
+getAll(): Promise<Manager[]>: Retrieve all managers.
+
+The DAO Pattern abstracts the logic needed to interact with the database (IndexedDB in this case). Each class (Coffee, Order, Manager) has its own DAO to handle the saving and retrieval of entities.
+
+6. Coffee Factory (Factory Pattern)
+CoffeeFactory Class
+Methods:
+
+createCoffee(type: string): Coffee: A factory method that creates different types of coffee based on the type passed in (e.g., "Espresso", "Latte", "Cappuccino").
+
+The Factory Pattern is useful for encapsulating the logic of creating coffee objects. The client code doesn't need to know the specifics of how to create a Latte or Espresso—it just calls the factory method to get the correct coffee object.
+
+Relationships and Patterns
+Decorator Pattern: Allows us to dynamically add features (like milk or sugar) to the base Coffee object without modifying its structure.
+
+Singleton Pattern: Ensures that the InventoryManager class has only one instance, managing the ingredients globally.
+
+Factory Pattern: Encapsulates the creation logic for coffee objects in one place, ensuring the client code doesn’t have to deal with instantiation directly.
+
+DAO Pattern: Provides an abstraction layer between the business logic and the data storage, making it easier to manage the persistence logic (via IndexedDB or other databases).
+
+Summary of the Class Diagram
+Coffee (abstract) + concrete types (Espresso, Latte, Cappuccino) define the coffee options.
+
+CoffeeDecorator and concrete decorators (Milk, Sugar) let you modify coffee orders dynamically.
+
+Order class tracks each customer's order.
+
+Manager handles managerial information.
+
+InventoryManager (Singleton) ensures inventory is handled correctly.
+
+DAO interfaces handle the interaction with the database.
+
+CoffeeFactory creates coffee objects based on the type.
+
+
+cafe-management-system/
+├── src/
+│   ├── models/
+│   │   ├── Coffee.ts
+│   │   ├── Espresso.ts
+│   │   ├── Latte.ts
+│   │   ├── Cappuccino.ts
+│   │   ├── CoffeeDecorator.ts
+│   │   ├── MilkDecorator.ts
+│   │   ├── SugarDecorator.ts
+│   │   ├── WhippedCreamDecorator.ts
+│   │   ├── Order.ts
+│   │   ├── Manager.ts
+│   │   ├── InventoryManager.ts
+│   ├── dao/
+│   │   ├── CoffeeDAO.ts
+│   │   ├── OrderDAO.ts
+│   │   ├── ManagerDAO.ts
+│   ├── factory/
+│   │   └── CoffeeFactory.ts
+│   ├── utils/
+│   │   ├── asyncHelper.ts
+│   ├── app.ts
+├── dist/
+│   ├── (compiled JavaScript files)
+├── package.json
+├── tsconfig.json
+├── .gitignore
+├── README.md
